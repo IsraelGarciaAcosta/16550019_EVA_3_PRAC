@@ -1,0 +1,67 @@
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `northwind`.`lista_empleados` AS
+    SELECT 
+        `northwind`.`employees`.`EmployeeID` AS `id`,
+        `northwind`.`employees`.`FirstName` AS `nombre`,
+        `northwind`.`employees`.`LastName` AS `apellido`,
+        `northwind`.`employees`.`BirthDate` AS `fecha_nac`
+    FROM
+        `northwind`.`employees`
+------------------------------------------------------------------------------
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `northwind`.`lista_empleados_a` AS
+    SELECT 
+        `northwind`.`employees`.`EmployeeID` AS `id`,
+        `northwind`.`employees`.`FirstName` AS `nombre`,
+        `northwind`.`employees`.`LastName` AS `apellido`,
+        `northwind`.`employees`.`BirthDate` AS `fecha_nac`
+    FROM
+        `northwind`.`employees`
+    WHERE
+        (`northwind`.`employees`.`FirstName` LIKE 'A%')
+--------------------------------------------------------------------------------
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `northwind`.`mi_rfc` AS
+    SELECT 
+        OBTEN_RFC('Israel',
+                'Garcia',
+                'Acosta',
+                '1996-11-09') AS `rfc`
+----------------------------------------------------------------------------------
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `northwind`.`personas` AS
+    SELECT 
+        `northwind`.`employees`.`FirstName` AS `nombre`
+    FROM
+        `northwind`.`employees` 
+    UNION SELECT 
+        `northwind`.`customers`.`ContactName` AS `nombre`
+    FROM
+        `northwind`.`customers`
+-----------------------------------------------------------------------------------
+CREATE 
+    ALGORITHM = UNDEFINED 
+    DEFINER = `root`@`localhost` 
+    SQL SECURITY DEFINER
+VIEW `northwind`.`rfc_gringos` AS
+    SELECT 
+        `northwind`.`employees`.`FirstName` AS `firstname`,
+        `northwind`.`employees`.`LastName` AS `lastname`,
+        OBTEN_RFC(`northwind`.`employees`.`FirstName`,
+                `northwind`.`employees`.`LastName`,
+                '',
+                `northwind`.`employees`.`BirthDate`) AS `obten_rfc(firstname, lastname, '', birthdate)`
+    FROM
+        `northwind`.`employees`

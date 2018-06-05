@@ -1,0 +1,199 @@
+CREATE DEFINER=`root`@`localhost` FUNCTION `cantidad_vendida`(productoid int) RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare resu int;
+
+	select sum(B.quantity) into resu 
+	from products A
+	inner join orderdetails B
+	on productoid = B.productid
+	where A.productid = productoid;
+RETURN resu;
+END
+--------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `contar_clientes`() RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare cont int;
+	select count(*) into cont from customers;
+RETURN cont;
+END
+---------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `contar_clientes_cursor`() RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare conta int;
+	declare customerid text;
+	declare fin_cursor int default false;
+	declare cursor_clientes cursor for select customerid from customers;
+	declare continue handler for not found set fin_cursor = true;
+	
+	set conta = 0;
+	
+	open cursor_clientes;
+
+	ciclo_cursor: loop
+		fetch cursor_clientes into customerid;		
+		if fin_cursor then
+			leave ciclo_cursor;
+		else 
+			set conta = conta + 1;
+		end if;
+	end loop;
+
+	close cursor_clientes;
+RETURN conta;
+END
+-----------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `copia_nombre`() RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare conta int;
+	declare nombre_cliente text;
+	declare fin_cursor int default false;
+	declare cursor_clientes cursor for select contactname from customers;
+	declare continue handler for not found set fin_cursor = true;
+	
+	set conta = 0;
+	
+	open cursor_clientes;
+
+	ciclo_cursor: loop
+		fetch cursor_clientes into nombre_cliente;		
+		if fin_cursor then
+			leave ciclo_cursor;
+		else 
+			set conta = conta + 1;
+			insert into nombre_cliente values(nombre_cliente);
+		end if;
+	end loop;
+
+	close cursor_clientes;
+RETURN conta;
+END
+--------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `factorial`(num int) RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare acum int;
+	set acum = 1;
+	facto_loop: loop
+		if num > 0 then
+			set acum = acum * num;
+			set num = num - 1;
+			iterate facto_loop;
+		end if;
+		leave facto_loop;
+	end loop facto_loop;
+RETURN acum;
+END
+----------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `insert_ventas_producto`() RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare conta int;
+	declare product_id int;
+	declare venta_producto double;
+	declare cant_vendida int;
+	declare fin_cursor int default false;
+	declare cursor_productid cursor for select productid, ventas_producto(productid), cantidad_vendida(productid) from products;
+	declare continue handler for not found set fin_cursor = true;
+	
+	set conta = 0;
+	
+	open cursor_productid;
+
+	ciclo_cursor: loop
+		fetch cursor_productid into product_id,venta_producto, cant_vendida;
+		if fin_cursor then
+			leave ciclo_cursor;
+		else 
+			set conta = conta + 1;
+			insert into ventas_producto(productid, totalsales, totalunits) 
+			values (product_id, venta_producto, cant_vendida);
+		end if;
+	end loop;
+
+	close cursor_productid;
+RETURN conta;
+END
+---------------------------------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `obten_rfc`(nombre text, apellido_pat text, apellido_mat text, fecha_nac date) RETURNS text CHARSET latin1
+    DETERMINISTIC
+BEGIN
+	declare cadena_ap_pat text;
+	declare cadena_ap_mat text;
+	declare cadena_nom text;
+	declare resu text;
+	declare annio int;
+	declare mes int;
+	declare dia int;
+	declare cadena_mes text;
+	declare cadena_dia text;
+	declare cadena_fecha text;
+	declare numero_alea int;
+
+	set cadena_ap_pat = UPPER(left (apellido_pat,2));
+	if length(apellido_mat) > 0 then
+		set cadena_ap_mat = UPPER(left (apellido_mat,1));
+	else
+		set cadena_ap_mat = 'x';
+	end if;
+	set cadena_nom = UPPER(left (nombre,1));
+
+	set annio = year(fecha_nac);
+	set dia = dayofmonth(fecha_nac);
+	set mes = month(fecha_nac);
+
+	if dia < 10 then
+		set cadena_dia = concat('0',dia);
+	else 
+		set cadena_dia = concat(dia);
+	end if;
+
+	if mes < 10 then
+		set cadena_mes = concat('0',mes);
+	else 
+		set cadena_mes = concat(mes);
+	end if;
+
+	set numero_alea = floor(rand()*1000);
+
+	set cadena_fecha = concat(right(concat(annio),2),cadena_mes,cadena_dia);
+
+	set resu = concat(cadena_ap_pat, cadena_ap_mat, cadena_nom, cadena_fecha, concat(numero_alea));
+RETURN resu;
+END
+-------------------------------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `sumar_numeros`(num1 int, num2 int) RETURNS int(11)
+    DETERMINISTIC
+BEGIN
+	declare suma int;
+	set suma = 0;
+	set suma = num1 + num2;
+RETURN suma;
+END
+------------------------------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `total_orders`(customer_id text) RETURNS double
+    DETERMINISTIC
+BEGIN
+	declare resu double; /*variable de tipo bouble */
+	select sum(A.unitprice * A.quantity) into resu
+	from orderdetails A
+	inner join orders B on A.orderid = B.orderid
+	where B.customerid = customer_id;
+RETURN resu;
+END
+--------------------------------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` FUNCTION `ventas_producto`(productoid int) RETURNS double
+    DETERMINISTIC
+BEGIN
+	declare resu double;
+
+	select sum(B.unitprice * B.quantity) into resu 
+	from products A
+	inner join orderdetails B
+	on productoid = B.productid
+	where A.productid = productoid;
+RETURN resu;
+END

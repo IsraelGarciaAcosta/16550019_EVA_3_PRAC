@@ -1,0 +1,101 @@
+USE `northwind`$$
+
+CREATE
+DEFINER=`root`@`localhost`
+TRIGGER `northwind`.`empleados_BINS`
+BEFORE INSERT ON `northwind`.`empleados`
+FOR EACH ROW
+-- Edit trigger body code below this line. Do not edit lines above this one
+
+	if NEW.salario < 2200 then
+		-- CODIGO 45000 ES PARA ERRORES PERSONALIZADOS --
+		signal SQLSTATE '45000' set message_text = 'SALARIO MINIMO $2,200';
+	else
+		if NEW.salario < 20000 then
+			set NEW.comision = 0.1;
+		else
+			set NEW.comision = 0.2;
+        end if;
+		set new.RFC = obten_rfc(new.nombre, new.apellido,'', new.fecha_nac);
+    end if;
+
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `northwind`.`empleados_AFTER_INSERT` AFTER INSERT ON `empleados` FOR EACH ROW
+BEGIN
+	declare total double;
+    select sum(salario) into total from empleados;
+    insert into pagos_empleados(total_pagado)
+    values (total);
+END
+_______________________________________________________________________
+USE `northwind`;
+DELIMITER $$
+
+CREATE TRIGGER `empleados_BUPD` BEFORE UPDATE ON empleados FOR EACH ROW
+-- Edit trigger body code below this line. Do not edit lines above this one
+BEGIN
+	-- VERIFICAR EL SALARIO DEL EMPLEADO --
+    if not new.salario = old.salario then
+		if NEW.salario < 2200 then
+			-- CODIGO 45000 ES PARA ERRORES PERSONALIZADOS --
+			signal SQLSTATE '45000'
+            set message_text = 'SALARIO MINIMO $2,200';
+		else
+			if NEW.salario < 20000 then
+				set NEW.comision = 0.1;
+			else
+				set NEW.comision = 0.2;
+			end if;
+        end if;
+    end if;
+	if not new.nombre = old.nombre then 
+		set new.RFC = obten_rfc(new.nombre, new.apellido,'', new.fecha_nac);
+	end if;
+	if not new.apellido = old.apellido then 
+		set new.RFC = obten_rfc(new.nombre, new.apellido,'', new.fecha_nac);
+	end if;
+	if not new.fecha_nac = old.fecha_nac then 
+		set new.RFC = obten_rfc(new.nombre, new.apellido,'', new.fecha_nac);
+	end if;
+END
+---------------------------
+
+
+USE `northwind`;
+DELIMITER $$
+
+CREATE TRIGGER `empleados_BDEL` BEFORE DELETE ON empleados FOR EACH ROW
+-- Edit trigger body code below this line. Do not edit lines above this one
+begin
+		if old.nivel = 'Administrador' then
+		signal SQLSTATE '45000' set message_text = 'PROHIBIDO BORRAR EMPLEADOS ADMINISTRATIVOS';
+		end if;
+end
+________________________________________________________________________________--
+USE `northwind`;
+DELIMITER $$
+
+CREATE TRIGGER `empleados_ADEL` AFTER DELETE ON empleados FOR EACH ROW
+-- Edit trigger body code below this line. Do not edit lines above this one
+BEGIN
+	declare total double;
+    select sum(salario) into total from empleados;
+    insert into pagos_empleados(total_pagado)
+    values (total);
+END
+__________________________________________________________________________________-
+
+USE `northwind`;
+DELIMITER $$
+
+CREATE TRIGGER `empleados_AUPD` AFTER UPDATE ON empleados FOR EACH ROW
+-- Edit trigger body code below this line. Do not edit lines above this one
+if NEW.salario < 20000 then
+				set NEW.comision = 0.1;
+			else
+				set NEW.comision = 0.2;
+			end if;
+	declare total double;
+    select sum(salario) into total from empleados;
+    insert into pagos_empleados(total_pagado)
+    values (total);

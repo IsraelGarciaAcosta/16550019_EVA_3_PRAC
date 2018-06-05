@@ -1,0 +1,21 @@
+CREATE DEFINER=`root`@`localhost` PROCEDURE `cantidad_ordenes_cliente`(in customer_id text, out cant int)
+BEGIN
+	select count(*) into cant from orders where customerid = customer_id;
+END
+-------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` PROCEDURE `conteo_clientes`(in letra text, out cant int)
+BEGIN
+	select * from customers where contactname like concat(letra,'%');
+	select count(*) into cant from customers where contactname like concat(letra,'%'); 
+	select cant;
+END
+------------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` PROCEDURE `ordenes_cliente`(in customer_id text)
+BEGIN
+	select * from orders where customerid = customer_id;
+END
+---------------------------------------------------------------------------------------------------------------
+CREATE DEFINER=`root`@`localhost` PROCEDURE `todos_clientes`()
+BEGIN
+	select * from customers;
+END
